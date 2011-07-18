@@ -97,6 +97,24 @@ AC_ARG_WITH([cyrus-sasl2], [  --with-cyrus-sasl2[[=PREFIX]] specify Cyrus-SASL2 
 CFLAGS="$CFLAGS $sasl_v2_CFLAGS"
 LIBS="$LIBS $sasl_v2_LIBS"
 
+AC_ARG_WITH([mhash], [  --with-mhash[[=PREFIX]]       specify mhash installation prefix], [
+  if test -z "$withval" -o "$withval" = "yes"; then
+    dnl try autodetection...
+    PAM_MYSQL_CHECK_MHASH([/usr /usr/local /opt /opt/mhash], [
+      AC_DEFINE([HAVE_MHASH], [1], [Define to 1 if mhash is installed])
+      mhash_avail=1
+    ]) 
+  else
+    PAM_MYSQL_CHECK_MHASH(["$withval"], [
+      AC_DEFINE([HAVE_MHASH], [1], [Define to 1 if mhash is installed])
+      mhash_avail=1
+    ], [])
+  fi
+], [])
+
+CFLAGS="$CFLAGS $mhash_CFLAGS"
+LIBS="$LIBS $mhash_LIBS"
+
 AC_ARG_WITH([cyrus-sasl], [  --with-cyrus-sasl[[=PREFIX]] specify Cyrus-SASL installation prefix], [
   if test -z "$sasl_v2_avail"; then
     if test -z "$withval" -o "$withval" = "yes"; then

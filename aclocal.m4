@@ -10,7 +10,7 @@ dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 dnl PARTICULAR PURPOSE.
 
-dnl $Id: acinclude.m4,v 1.6.2.9 2005/09/21 06:31:04 moriyoshi Exp $
+dnl $Id: acinclude.m4,v 1.6.2.10 2006/01/09 10:35:59 moriyoshi Exp $
 
 AC_DEFUN([PAM_MYSQL_CHECK_CONST], [
   AC_CACHE_CHECK([$1 availability], [ac_cv_const_[]$1], [
@@ -297,7 +297,7 @@ AC_DEFUN([PAM_MYSQL_CHECK_OPENSSL], [
         if eval test -e "$dir/$libname_spec$shrext_cmds" -o -e "$dir/$libname_spec.$libext"; then
           name="$ssl_lib_name"
           if eval test -e "$dir/$libname_spec$shrext_cmds" -o -e "$dir/$libname_spec.$libext"; then
-            LIBS="$LIBS -l$crypto_lib_name"
+            LIBS="$LIBS -l$crypto_lib_name -l$ssl_lib_name"
 
             AC_CHECK_LIB([$crypto_lib_name], [CRYPTO_free], [
               AC_CHECK_LIB([$ssl_lib_name], [SSL_CTX_new], [
@@ -417,6 +417,39 @@ int main()
   done
 
   if test -z "$sasl_v2_CFLAGS" -o -z "$sasl_v2_LIBS"; then
+    ifelse([$3],[],[:],[$3])
+  else
+    ifelse([$2],[],[:],[$2])
+  fi
+])
+
+AC_DEFUN([PAM_MYSQL_CHECK_MHASH], [
+  mhash_CFLAGS=
+  mhash_LIBS=
+  mhash_lib_name="mhash"
+  for _pfx in $1; do
+    for dir in "$_pfx/include/mhash" "$_pfx/include"; do
+      if test -e "$dir/mhash.h" -a -z "$mhash_CFLAGS"; then
+        ac_save_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS -I$dir"
+		  fi
+		done
+    for dir in "$_pfx/lib" "$_pfx/lib64"; do
+      if test -z "$mhash_LIBS"; then
+        ac_save_LIBS="$LIBS"
+        LIBS="$LIBS -L$dir"
+        name="$mhash_lib_name"
+        if eval test -e "$dir/$libname_spec$shrext_cmds" -o -e "$dir/$libname_spec.$libext"; then
+          AC_CHECK_LIB([$mhash_lib_name], [mhash_client_init], [
+            mhash_LIBS="-L$dir -l$mhash_lib_name"
+          ],[]) 
+        fi
+        LIBS="$ac_save_LIBS"
+      fi
+    done
+  done
+  
+  if test -z "$mhash_CFLAGS" -o -z "$mhash_LIBS"; then
     ifelse([$3],[],[:],[$3])
   else
     ifelse([$2],[],[:],[$2])
